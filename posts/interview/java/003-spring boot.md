@@ -76,13 +76,17 @@ Spring 是一个 轻量级 IOC + AOP 容器，核心目标是：
   ![](../../../assets/images/interview/java/002/01.png)
 
 
-- 实例化
-- 属性注入
-- Aware 接口
-- BeanPostProcessor
-- 初始化方法
-- 使用
-- 销毁
+```text
+1. 实例化（new Bean()）→ 
+2. 属性填充（@Autowired 注入依赖）→ 
+3. 执行 Aware 方法（setBeanName/setApplicationContext 等）→ 
+4. 执行初始化前处理器（BeanPostProcessor.postProcessBeforeInitialization）→ 
+5. 执行初始化方法（@PostConstruct / init-method / InitializingBean.afterPropertiesSet）→ 
+6. 执行初始化后处理器（BeanPostProcessor.postProcessAfterInitialization）→ 
+7. Bean 就绪（可被使用）→ 
+8. 容器销毁时执行销毁方法（@PreDestroy / destroy-method / DisposableBean.destroy）
+```
+
 ---
 
 
