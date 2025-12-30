@@ -214,5 +214,58 @@ Spring 是一个 轻量级 IOC + AOP 容器，核心目标是：
 - 关键细节：@Async 的线程池配置（避坑重点）
 - 默认线程池的问题：Spring 自带的默认异步线程池（SimpleAsyncTaskExecutor）有坑 —— 它不是真正的线程池，而是每次调用都创建新线程（这是唯一 “创建新线程” 的情况），高并发下会导致线程爆炸，必须自定义线程池
 
+---
+
+
+
+### 14. Spring Boot 启动过程？
+
+Spring Boot 的启动过程是 **“封装 + 自动配置 + 上下文初始化 + Bean 生命周期管理”** 的闭环流程，核心是通过 SpringApplication.run() 触发，从应用启动到最终 Bean 就绪，可拆解为 8 个核心阶段，同时依托自动配置、上下文刷新等机制实现 “约定大于配置” 的核心特性
+
+```text
+main() → SpringApplication.run()
+  ↓
+初始化 SpringApplication（推断应用类型、加载监听器/初始化器）
+  ↓
+环境准备（加载配置、激活环境）
+  ↓
+创建 ApplicationContext（按应用类型）
+  ↓
+加载 BeanDefinition（扫描组件 + 自动配置）
+  ↓
+上下文刷新（核心）：
+  ├─ BeanFactory 初始化
+  ├─ BeanPostProcessor 注册
+  ├─ Web 容器初始化（Web 应用）
+  ├─ Bean 实例化 + 依赖注入 + 初始化
+  └─ 上下文刷新完成
+  ↓
+启动 Web 容器（Web 应用） + 执行 ApplicationRunner/CommandLineRunner
+  ↓
+应用就绪（ApplicationReadyEvent）
+```
+
+- Spring Boot 的启动过程本质是 **“Spring 上下文的初始化 + 自动配置的落地 + 嵌入式容器的启动”**，核心围绕 ApplicationContext 的创建和刷新展开，通过 “约定大于配置” 的自动配置、Starter 机制，大幅简化了 Spring 应用的开发和部署。
+- 理解启动流程的关键是抓住 “**上下文刷新（refresh）**” 这个核心阶段，它涵盖了 Bean 的全生命周期管理，也是自动配置、依赖注入、AOP 等核心特性的落地环节。
+
+
 
 ---
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
