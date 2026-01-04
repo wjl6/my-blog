@@ -124,7 +124,7 @@ Spring 是一个 轻量级 IOC + AOP 容器，核心目标是：
 
 ### 10. Spring 事务的传播行为？
 
-(1) REQUIRED（默认）：支持当前事务，无则新建
+- (1) REQUIRED（默认）：支持当前事务，无则新建
 > - 核心逻辑：   
 > **如果外层有事务，内层复用外层事务**；   
 > **如果外层无事务，内层新建自己的事务**。   
@@ -256,9 +256,224 @@ main() → SpringApplication.run()
 
 ---
 
+### 15. Spring Boot 中常见的设计模式？
+
+| 序号 | 设计模式       | 英文名称           | 描述                                                                 | 在 Spring Boot 中的典型应用                                                                 | 示例                          |
+|------|----------------|--------------------|----------------------------------------------------------------------|--------------------------------------------------------------------------------------------|-------------------------------|
+| 1    | **单例模式**       | Singleton Pattern  | 确保一个类只有一个实例，并提供全局访问点                             | Spring Bean 默认作用域为 singleton，整个应用上下文共享一个实例                             | @Service、@Component 注解的类 |
+| 2    | **工厂模式**       | Factory Pattern    | 定义创建对象的接口，让子类或配置决定实例化哪一个类                   | BeanFactory / ApplicationContext 负责根据配置动态创建 Bean；FactoryBean 接口自定义创建逻辑 | applicationContext.getBean()  |
+| 3    | **代理模式**       | Proxy Pattern      | 为对象提供代理以控制访问，常用于添加额外行为                         | Spring AOP 使用 JDK 动态代理或 CGLIB 实现事务、日志、安全等横切关注点                       | @Transactional 注解的方法被代理 |
+| 4    | 模板方法模式   | Template Method Pattern | 定义算法骨架，将部分步骤延迟到子类或回调中实现                     | 各种 Template 类封装固定流程（如连接获取、资源释放），用户实现核心逻辑                       | JdbcTemplate、RestTemplate、RedisTemplate |
+| 5    | 依赖注入       | Dependency Injection | 控制反转的一种实现，将依赖从外部注入而非内部创建                   | Spring 核心机制，通过构造函数、字段或 Setter 注入依赖                                       | @Autowired 注解注入 Service/Repository |
+| 6    | 观察者模式     | Observer Pattern   | 一对多依赖，当主体状态变化时自动通知所有观察者                       | 事件发布/订阅机制                                                                          | ApplicationEventPublisher + @EventListener |
+| 7    | **策略模式**       | Strategy Pattern   | 定义一系列算法并封装，使它们可以相互替换                             | 根据条件选择不同实现类（如不同支付方式、缓存策略）                                         | 将多个策略 Bean 放入 Map，根据类型动态选择 |
+| 8    | 适配器模式     | Adapter Pattern    | 将不兼容的接口转换为客户端期望的接口                                 | Spring MVC 中的 HandlerAdapter 将不同类型的 Handler（如 @Controller）适配到统一处理流程     | WebMvcConfigurer 自定义适配    |
+| 9    | 装饰者模式     | Decorator Pattern  | 动态地给对象添加额外职责                                             | 某些 Wrapper 类或增强器（如事务装饰、缓存装饰）                                             | 数据源切换、ResponseBodyAdvice 等 |
 
 
+---
 
+### 16. Spring Boot 一个接口多个实现类如何依赖注入？
+
+#### 一、 指定 Bean 名称注入（@Qualifier）
+- 核心：通过 @Qualifier 指定目标实现类的 Bean 名称，是最常用的基础方式
+
+用法 1：字段注入（简洁，推荐小项目 / 非核心代码）
+```java
+@Service
+public class OrderService {
+    // @Qualifier 指定 Bean 名称（与实现类的默认名称/自定义名称匹配）
+    @Autowired
+    @Qualifier("wechatPayService") 
+    private PayService payService;
+
+    public void checkout(double amount) {
+        payService.pay(amount);
+    }
+}
+```
+
+用法 2：构造器注入（推荐，符合 Spring 最佳实践，便于测试）
+```java
+@Service
+public class OrderService {
+    private final PayService payService;
+
+    // 构造器注入 + @Qualifier
+    @Autowired
+    public OrderService(@Qualifier("alipayService") PayService payService) {
+        this.payService = payService;
+    }
+
+    public void checkout(double amount) {
+        payService.pay(amount);
+    }
+}
+```
+
+扩展：自定义 Bean 名称（避免默认名称冲突）
+```java
+// 自定义 Bean 名称为 "wxPay"
+@Service("wxPay")
+@Order(1) // 指定优先级，数字越小越优先
+public class WechatPayService implements PayService { ... }
+
+// 注入时匹配自定义名称
+@Autowired
+@Qualifier("wxPay")
+private PayService payService;
+```
+
+#### 二、 指定主实现类（@Primary）
+- 核心：给某一个实现类标记 @Primary，当接口注入时无明确指定，默认注入该实现类
+
+```java
+// 标记为默认实现类
+@Service
+@Primary 
+public class AlipayService implements PayService { ... }
+
+// 注入时无需 @Qualifier，默认注入 AlipayService
+@Service
+public class OrderService {
+    @Autowired
+    private PayService payService; // 自动注入 AlipayService
+
+    public void checkout(double amount) {
+        payService.pay(amount); // 输出：支付宝支付
+    }
+}
+```
+⚠️ 注意：一个接口只能有一个 @Primary 实现类，否则仍会报 “无唯一 Bean” 异常。
+
+#### 三、 方式 3：按类型批量注入（List/Map）
+- 核心：将接口的所有实现类注入到 List/Map 中，适用于 “动态选择实现类” 场景（如根据参数切换支付方式）
+
+```java
+@Service
+public class OrderService {
+    // 注入所有 PayService 实现类：Key=Bean 名称，Value=实现类实例
+    @Autowired
+    private Map<String, PayService> payServiceMap;
+
+    // 或注入到 List：按 Bean 加载顺序存储 @Order(1)
+     @Autowired
+     private List<PayService> payServiceList;
+
+    public void checkout(double amount, String payType) {
+        // 根据支付类型动态获取实现类
+        PayService payService = switch (payType) {
+            case "wechat" -> payServiceMap.get("wechatPayService");
+            case "alipay" -> payServiceMap.get("alipayService");
+            default -> throw new IllegalArgumentException("不支持的支付类型");
+        };
+        payService.pay(amount);
+    }
+}
+
+// 调用示例
+// orderService.checkout(100.0, "wechat"); → 微信支付
+// orderService.checkout(100.0, "alipay"); → 支付宝支付
+```
+
+#### 四、 通过配置类手动注册 Bean（@Bean）
+- 核心：在配置类中手动定义 Bean，指定名称和实现类，适用于 “第三方实现类”“需自定义初始化逻辑” 的场景
+
+```java
+// 配置类
+@Configuration
+public class PayConfig {
+    // 手动注册 WechatPayService，指定 Bean 名称为 "myWechatPay"
+    @Bean("myWechatPay")
+    public PayService wechatPayService() {
+        // 可自定义初始化逻辑（如设置参数、依赖其他 Bean）
+        return new WechatPayService();
+    }
+
+    // 手动注册 AlipayService，指定 Bean 名称为 "myAlipay"
+    @Bean("myAlipay")
+    public PayService alipayService() {
+        return new AlipayService();
+    }
+}
+
+// 注入时指定手动注册的 Bean 名称
+@Service
+public class OrderService {
+    @Autowired
+    @Qualifier("myWechatPay")
+    private PayService payService;
+}
+```
+
+#### 五、 使用 @Resource 按名称注入（JDK 注解，替代 @Autowired+@Qualifier）
+- 核心：@Resource 是 JDK 自带注解，默认按 Bean 名称注入，无需搭配 @Qualifier，更简洁
+
+```java
+@Service
+public class OrderService {
+    // @Resource(name = "Bean 名称") 按名称注入
+    @Resource(name = "wechatPayService")
+    private PayService payService;
+
+    // 若省略 name，默认按字段名匹配 Bean 名称（如字段名是 wechatPayService，则匹配同名 Bean）
+    // @Resource
+    // private PayService wechatPayService;
+}
+```
+
+#### 六、 动态注入（ApplicationContext 手动获取）
+- 核心：通过 ApplicationContext 手动获取 Bean，适用于 “运行时动态选择” 且无法提前注入的场景（如工具类、非 Spring 管理的类）
+
+```java
+@Service
+public class OrderService implements ApplicationContextAware {
+    private ApplicationContext applicationContext;
+
+    // 实现 ApplicationContextAware，Spring 自动注入 ApplicationContext
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
+    }
+
+    public void checkout(double amount, String payType) {
+        // 手动获取 Bean
+        PayService payService = switch (payType) {
+            case "wechat" -> applicationContext.getBean("wechatPayService", PayService.class);
+            case "alipay" -> applicationContext.getBean("alipayService", PayService.class);
+            default -> throw new IllegalArgumentException("不支持的支付类型");
+        };
+        payService.pay(amount);
+    }
+}
+```
+
+#### 总结
+| 注入方式                | 适用场景                                   | 优先级         |
+|-------------------------|--------------------------------------------|----------------|
+| @Qualifier + @Autowired | 固定使用某一个实现类                       | 最高（基础通用）|
+| @Primary                | 大部分场景默认用某实现类，少数场景指定其他 | 高             |
+| List/Map 批量注入       | 动态切换实现类（如根据参数选择）| 高             |
+| @Bean 手动注册          | 第三方实现类、需自定义初始化逻辑           | 中             |
+| @Resource               | 习惯 JDK 注解，替代 @Autowired+@Qualifier  | 中             |
+| ApplicationContext 手动获取 | 非 Spring 管理类、极端动态场景             | 低（尽量避免）|
+
+---
+
+
+### 17、 @Resource 和 @Autowired有什么区别？
+| 对比维度         | @Autowired                                                                 | @Resource                                                                 |
+|------------------|----------------------------------------------------------------------------|---------------------------------------------------------------------------|
+| 所属规范         | Spring 框架原生注解（org.springframework.beans.factory.annotation）        | JDK 自带注解（javax.annotation，JDK9 + 需手动引入依赖）                   |
+| **注入核心规则**     | 先按类型（Type） 匹配 Bean，类型匹配失败再按名称（Name）（需配合 @Qualifier） | 先按名称（Name） 匹配 Bean，名称匹配失败再按类型（Type）                  |
+| 依赖必选性       | 默认必须找到匹配 Bean，否则抛 NoSuchBeanDefinitionException（可通过 required = false 关闭） | 默认必须找到匹配 Bean，否则抛 NoSuchBeanDefinitionException（可通过 name="" 或 type=Object.class 宽松匹配） |
+| 支持的注解搭配   | 需配合 @Qualifier 指定 Bean 名称；配合 @Primary 解决类型冲突                | 无需额外注解，直接通过 name 属性指定 Bean 名称                            |
+| **支持的注入方式**   | 字段注入、构造器注入、方法注入（setter / 任意方法）                        | 字段注入、setter 方法注入（构造器注入不支持）                             |
+| **泛型注入支持**     | 支持泛型类型匹配（如 List<PayService> 注入所有 PayService 实现类）          | 泛型支持弱（仅能按名称 / 原始类型匹配）                                   |
+| 属性配置         | 仅支持 required（是否必须注入）                                            | 支持 name（指定 Bean 名称）、type（指定 Bean 类型）                       |
+| 循环依赖处理     | 与 Spring 容器一致，支持字段注入的循环依赖（构造器注入不支持）              | 同 Spring 容器规则，依赖 Spring 底层处理                                |
+
+---
 
 
 
