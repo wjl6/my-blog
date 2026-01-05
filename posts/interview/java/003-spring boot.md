@@ -213,6 +213,8 @@ Spring 是一个 轻量级 IOC + AOP 容器，核心目标是：
 - Spring Boot 解决的是单体应用的快速开发和配置问题，而 Spring Cloud 是在此基础上解决微服务架构下的服务治理问题
 - 并不是一上来就 Cloud，业务复杂度不够时反而会增加运维和排错成本
 
+---
+
 ### 13. @Async 本质？
 - @Async 本质上是让被注解的方法脱离当前线程，交由 Spring 管理的线程池来执行（而非 JVM 直接创建新线程）
 - 关键细节：@Async 的线程池配置（避坑重点）
@@ -461,7 +463,7 @@ public class OrderService implements ApplicationContextAware {
 ---
 
 
-### 17、 @Resource 和 @Autowired有什么区别？
+### 17. @Resource 和 @Autowired有什么区别？
 | 对比维度         | @Autowired                                                                 | @Resource                                                                 |
 |------------------|----------------------------------------------------------------------------|---------------------------------------------------------------------------|
 | 所属规范         | Spring 框架原生注解（org.springframework.beans.factory.annotation）        | JDK 自带注解（javax.annotation，JDK9 + 需手动引入依赖）                   |
@@ -477,8 +479,49 @@ public class OrderService implements ApplicationContextAware {
 
 
 
+### 18. 什么是循环依赖？如何解决循环依赖？
+
+- 循环依赖**指两个 / 多个 Bean 互相依赖对方（如 A→B，B→A），导致容器初始化 Bean 时陷入 “先有鸡还是先有蛋” 的死循环**；Spring 仅通过「**三级缓存**」解决单例 Bean 的构造器之外的循环依赖，**多例 Bean / 构造器注入的循环依赖无法解决**。
+
+Spring 解决循环依赖的核心是「提前暴露未完成初始化的 Bean 实例」，通过三级缓存实现，这是 Spring 最核心的源码考点之一。
+
+#### 1. 三级缓存的定义（DefaultSingletonBeanRegistry 中）
+| 缓存级别 | 名称                | 类型                     | 作用                                                                 |
+|----------|---------------------|--------------------------|----------------------------------------------------------------------|
+| 一级缓存 | singletonObjects    | Map<String, Object>      | 存储完全初始化完成的单例 Bean（最终可用的实例）|
+| 二级缓存 | earlySingletonObjects | Map<String, Object>    | 存储提前暴露的未完成初始化的 Bean（已实例化，未属性注入 / 初始化）|
+| 三级缓存 | singletonFactories  | Map<String, ObjectFactory<?>> | 存储 Bean 的创建工厂，用于生成提前暴露的 Bean 实例（解决 AOP 代理问题） |
 
 
+#### 2. 三级缓存解决循环依赖的完整流程（A→B→A）
+- 初始化 A：
+  - 先 new 出 A 的空对象（实例化），但还没注入 B、没执行 @PostConstruct；
+  - **把 A 的 “创建工厂” 丢到三级缓存，目的是 “提前暴露 A 的引用”**；
+  - 开始给 A 注入 B，发现 B 还没创建，转去创建 B。
+- 初始化 B：
+  - 先 new 出 B 的空对象，把 B 的工厂丢到三级缓存；
+  - 开始给 B 注入 A，此时去查缓存：
+  - 一级缓存（完成的 A）：无；
+  - 二级缓存（早期 A）：无；
+  - **三级缓存（A 的工厂）：有 → 用工厂生成 A 的早期实例，丢到二级缓存，删除三级缓存；**
+  - 把二级缓存里的 “早期 A” 注入给 B；
+  - B 完成初始化（注入 A + 执行 @PostConstruct），丢到一级缓存。
+- 回到初始化 A：
+  - 从一级缓存拿到完成的 B，注入给 A；
+  - **A 完成初始化，丢到一级缓存，删除二级缓存里的早期 A。**
+
+#### 3. 为什么需要三级缓存？（核心是解决 AOP 代理）
+
+如果 Bean 需要生成 AOP 代理（如加了 @Transactional），三级缓存的 ObjectFactory 会在 “提前暴露” 时生成代理对象，而非原始对象 —— 这样注入给依赖方的是代理对象，而非原始对象，保证 AOP 生效。
+
+如果只有二级缓存，无法动态生成代理对象，会导致循环依赖场景下 AOP 失效。
+
+> 新手最容易困惑的点：为什么提前暴露的是代理对象，而不是原始对象？
+>  - 核心在 getEarlyBeanReference 方法：Spring 会遍历所有 BeanPostProcessor，其中 AbstractAutoProxyCreator（AOP 代理创建器）会在这里判断当前 Bean 是否需要代理：
+>  - 如果需要（比如有 @Transactional）：立即生成代理对象并返回；
+>  - 如果不需要：返回原始对象。
+> 
+> 这样，注入给 B 的 A 是代理对象，而非原始对象 → 当 B 调用 A 的方法时，会触发代理的增强逻辑（比如事务），保证 AOP 生效。
 
 
 

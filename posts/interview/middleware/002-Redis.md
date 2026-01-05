@@ -244,6 +244,57 @@ if (locked) {
 
 ---
 
+
+### 9. 如果锁过期了但任务未执行完该怎么办？
+分布式锁最核心的坑点之一 —— **核心风险是锁失效后其他客户端会拿到锁，导致多个客户端同时执行同一任务，引发数据错乱、重复执行等问题**
+
+
+- 问题根源：**锁的过期时间与任务执行时间不匹配**
+
+#### 核心解决思路：分场景处理（从简单到复杂）
+- 场景一：非核心任务（允许少量重复执行）→ 应急方案：延长过期时间
+
+- 场景二：核心任务（绝对不允许并发执行）→ 工业级方案：锁续约（看门狗机制）
+  这是解决该问题的最优方案，核心逻辑是：**让持有锁的客户端在任务执行过程中，定期给锁 “续命”（延长过期时间），直到任务完成再主动释放锁**
+
+Redis 官方推荐的 Redlock 算法、Java 客户端（如 Redisson）都内置了这个机制（叫「看门狗 Watch Dog」），下面拆解实现逻辑
+
+```java
+Config config = new Config();
+config.useSingleServer().setAddress("redis://127.0.0.1:6379");
+RedissonClient redisson = Redisson.create(config);
+
+// 获取分布式锁（默认开启看门狗，初始过期时间30s，每10s续约一次）
+RLock lock = redisson.getLock("lockKey");
+try {
+    // 加锁（waitTime：最多等10s获取锁，leaseTime：-1表示用看门狗自动续约）
+    boolean locked = lock.tryLock(10, -1, TimeUnit.SECONDS);
+    if (locked) {
+        // 执行核心任务（即使执行超过30s，看门狗会自动续约）
+        doBusinessTask();
+    }
+} catch (InterruptedException e) {
+    Thread.currentThread().interrupt();
+} finally {
+    // 任务完成后主动释放锁（若客户端宕机，看门狗停止，锁30s后自动过期）
+    if (lock.isHeldByCurrentThread()) {
+        lock.unlock();
+    }
+}
+```
+
+- 场景 3：超长时间任务（执行时间小时级）→ 拆分任务 + 分段锁
+
+
+- 场景 4：极致严谨场景（金融 / 支付）→ 分布式锁 + 幂等性保障
+即使做了锁续约，仍可能出现极端情况（比如客户端网络闪断，看门狗无法续约），此时需要双重保障
+    - 分布式锁：保证 “大概率” 互斥；
+    - 幂等性：保证 “即使并发执行，也不会重复处理数据”。
+
+
+
+---
+
 ### 9. Redisson 的优势？
 Redisson 的核心价值是「**将 Redis 的分布式能力封装为开发者友好的 Java API**」
 - 核心优势 1：开箱即用的分布式原语，无需手写底层逻辑
