@@ -88,6 +88,8 @@ Spring 是一个 轻量级 IOC + AOP 容器，核心目标是：
 - **核心原理**：Spring Boot 自动配置基于 @EnableAutoConfiguration 开启总开关，通过 SPI 加载自动配置类，再通过 @Conditional 系列注解按需生效，最终实现 “按需配置、开箱即用”；
 - **核心精髓**：条件注解（@Conditional）保证配置 “按需生效”，@ConditionalOnMissingBean 保证 “用户配置优先”；
 - **核心价值**：消除传统 Spring 繁琐的 XML/Java 配置，简化开发，同时保留灵活的定制能力。
+
+> SPI 是 Service Provider Interface（服务提供者接口）的缩写，它是一种「Java 内置的服务发现机制」，核心思想是「面向接口编程，将接口的实现类配置化、解耦化」，允许程序在运行时动态加载接口的具体实现类，而无需在代码中硬编码依赖。
 ---
 
 ### 8. 自动配置的完整流程
