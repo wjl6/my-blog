@@ -288,7 +288,6 @@ WHERE a=1 ORDER BY c  -- ❌
 
 ---
 
-
 ## 四、SQL 基础
 
 ### 1. delete、truncate、drop 的区别？
