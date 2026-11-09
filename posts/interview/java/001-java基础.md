@@ -1,8 +1,18 @@
 ---
-title: "001-java基础.md"
-date: 2025-12-26 15:24:45
-tags: []
+title: "Java 基础面试知识"
+date: "2025-12-26 15:24:45"
+updated: "2026-11-09"
+type: post
+category: interview
+topic: backend
+tags: [java, jvm, collections, concurrency, io]
+slug: java-basics-interview
+summary: "整理 Java 语法与面向对象、集合、异常、JVM、并发、IO 及 Java 8 特性等基础面试知识。"
+status: draft
+visibility: private
 ---
+
+# Java 基础面试知识
 
 ## 一、Java 基础语法与面向对象
 

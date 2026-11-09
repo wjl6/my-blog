@@ -1,8 +1,19 @@
 ---
-title: "003-PostgreSQL.md"
-date: 2025-12-29 16:54:27
-tags: []
+title: "PostgreSQL 面试知识整理"
+date: "2025-12-29 16:54:27"
+updated: "2026-11-09"
+type: post
+category: interview
+topic: database
+tags: [postgresql, mvcc, vacuum, index, sql-optimization]
+slug: "postgresql-interview"
+summary: "整理 PostgreSQL 并发与事务、MVCC、VACUUM、索引、查询优化和逻辑复制等面试知识，并比较相关数据库特性。"
+status: draft
+visibility: private
 ---
+
+# PostgreSQL 面试知识整理
+
 ## 一、PostgreSQL 基础概念
 
 ### 1. PostgreSQL 是什么？适合什么场景？

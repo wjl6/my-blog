@@ -1,9 +1,18 @@
 ---
-title: "002-Milvus.md"
-date: 2025-12-30 12:51:29
-tags: []
+title: "Milvus 向量检索面试知识"
+date: "2025-12-30 12:51:29"
+updated: "2026-11-09"
+type: post
+category: interview
+topic: ai
+tags: [milvus, vector-search, rag]
+slug: "milvus-vector-search-interview"
+summary: "整理 Milvus 数据模型、向量类型、相似度度量与索引检索流程，涵盖系统架构、RAG 应用和性能排查。"
+status: draft
+visibility: private
 ---
 
+# Milvus 向量检索面试知识
 
 ## 一、Milvus 基础认知
 

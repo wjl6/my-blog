@@ -1,8 +1,18 @@
 ---
-title: "002-java进阶.md"
-date: 2025-12-27 18:36:44
-tags: []
+title: "Java 进阶面试知识"
+date: "2025-12-27 18:36:44"
+updated: "2026-11-09"
+type: post
+category: interview
+topic: backend
+tags: [java, thread-pool, annotations, reflection, dynamic-proxy]
+slug: java-advanced-interview
+summary: "整理 Java 线程池运行流程、元注解、反射与 JDK 动态代理的原理及应用场景。"
+status: draft
+visibility: private
 ---
+
+# Java 进阶面试知识
 
 ## 1. 线程池中线程是如何流转的？
 

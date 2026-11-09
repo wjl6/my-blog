@@ -1,0 +1,14 @@
+# 日常记录
+
+每日记录保留当天进展，每周复盘提炼成果、收获与后续行动。可以选择每天简记后每周整理，也可以只维护周报，具体节奏见[建设计划](../docs/knowledge-base-plan.md)。
+
+| 类型 | 首次写作时创建的路径 | 模板 |
+| --- | --- | --- |
+| 每日记录 | `daily/YYYY/MM/YYYY-MM-DD.md` | [每日模板](../templates/daily.md) |
+| 每周复盘 | `weekly/ISO周所属年份/YYYY-Www.md` | [每周模板](../templates/weekly.md) |
+
+日期以北京时间为准，周报按 ISO 周编号并写明起止日期。周报总结关键结果和变化，不逐日复制日报。详细原理、方案与术语放入[主题知识](../knowledge/README.md)，记录中保留简述与链接。
+
+此目录只保存经过脱敏、适合进入版本库的记录。包含公司内部信息的原始日志及附件放在本地 `private/journal/`、`private/assets/`，并单独备份。模板中的 `visibility: private` 是未来站点的筛选约定，不控制仓库文件访问权限。
+
+首次使用时复制模板、替换日期与标题；新增目录按需创建。完整命名和元数据说明见[目录规范](../docs/directory-design.md)。

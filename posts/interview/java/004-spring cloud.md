@@ -1,9 +1,18 @@
 ---
-title: "004-spring cloud.md"
-date: 2025-12-26 15:14:08
-tags: []
+title: "Spring Cloud 与微服务面试知识"
+date: "2025-12-26 15:14:08"
+updated: "2026-11-09"
+type: post
+category: interview
+topic: backend
+tags: [spring-cloud, microservices, service-discovery, circuit-breaker]
+slug: spring-cloud-microservices-interview
+summary: "整理微服务中的数据一致性、服务通信、容错与治理问题，以及 Spring Cloud 常用组件。"
+status: draft
+visibility: private
 ---
 
+# Spring Cloud 与微服务面试知识
 
 ## 1. 微服务常见问题？
 > 服务治理、数据一致性、容错、治理、运维、配置管理、链路追踪、服务熔断 / 限流
@@ -123,11 +132,3 @@ tags: []
 ---
 
 ## 2. Spring Cloud常用组件有哪些？
-
-
-
-
-
-
-
-   

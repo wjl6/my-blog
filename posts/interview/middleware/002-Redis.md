@@ -1,9 +1,18 @@
 ---
-title: "002-Redis.md"
-date: 2025-12-26 15:05:08
-tags: []
+title: "Redis 缓存与分布式锁面试整理"
+date: "2025-12-26 15:05:08"
+updated: "2026-11-09"
+type: post
+category: interview
+topic: middleware
+tags: [redis, cache, distributed-lock, redisson]
+slug: "redis-cache-distributed-lock-interview"
+summary: "整理 Redis 数据结构、过期与淘汰策略、缓存一致性、分布式锁及 Redisson 锁续约等常见面试问题。"
+status: draft
+visibility: private
 ---
 
+# Redis 缓存与分布式锁面试整理
 
 ### 1. Redis 为什么这么快？
 
@@ -210,13 +219,16 @@ public boolean unlock(String lockKey, String clientId) {
 > - 解锁时，向所有 Redis 节点发送解锁脚本，确保所有节点的锁都被释放。
 ##### 2. RedLock 实现（基于 Redisson 框架）
 生产环境无需手写 RedLock，可直接使用 Redis 官方推荐的 Redisson 框架（封装了完整的分布式锁实现，包括 RedLock）。
+
+以下节点使用文档示例地址，仅用于说明配置结构，不对应业务网络，也不代表示例已在当前 Redisson 版本验证。
+
 ```java
 // 1. 配置 Redisson 集群
 Config config = new Config();
 config.useRedLockServers()
-        .addNodeAddress("redis://192.168.1.100:6379")
-        .addNodeAddress("redis://192.168.1.101:6379")
-        .addNodeAddress("redis://192.168.1.102:6379");
+        .addNodeAddress("redis://192.0.2.11:6379")
+        .addNodeAddress("redis://192.0.2.12:6379")
+        .addNodeAddress("redis://192.0.2.13:6379");
 RedissonClient redisson = Redisson.create(config);
 
 // 2. 获取 RedLock 锁

@@ -1,8 +1,18 @@
 ---
-title: "005-Dubbo.md"
-date: 2026-01-08 15:58:10
-tags: []
+title: "Dubbo 与 Feign 服务调用对比"
+date: "2026-01-08 15:58:10"
+updated: "2026-11-09"
+type: post
+category: interview
+topic: middleware
+tags: [java, dubbo, rpc, feign, microservices]
+slug: "dubbo-feign-service-invocation"
+summary: "介绍 Dubbo 与 Feign 的主要定位，并从协议、序列化、服务治理和使用场景等方面整理二者差异。"
+status: draft
+visibility: private
 ---
+
+# Dubbo 与 Feign 服务调用对比
 
 ## 1. dubbo是什么？和feign有什么区别？
 

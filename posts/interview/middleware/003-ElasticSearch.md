@@ -1,8 +1,18 @@
 ---
-title: "003-ElasticSearch.md"
-date: 2025-12-27 18:34:01
-tags: []
+title: "Elasticsearch 检索与集群面试整理"
+date: "2025-12-27 18:34:01"
+updated: "2026-11-09"
+type: post
+category: interview
+topic: middleware
+tags: [elasticsearch, full-text-search, inverted-index, search-after]
+slug: "elasticsearch-search-cluster-interview"
+summary: "整理 Elasticsearch 倒排索引、分片副本、读写流程、数据同步与深度分页等检索和集群相关面试知识。"
+status: draft
+visibility: private
 ---
+
+# Elasticsearch 检索与集群面试整理
 
 ### 1. 为什么要用 ES？不用 MySQL 行不行？
 ES（Elasticsearch）和 MySQL 定位完全不同，**ES 专为全文检索、数据分析设计，MySQL 专为关系型数据存储、事务性操作设计**

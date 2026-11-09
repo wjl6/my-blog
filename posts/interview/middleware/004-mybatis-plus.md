@@ -1,8 +1,18 @@
 ---
-title: "004-mybatis-plus.md"
-date: 2026-01-08 14:08:53
-tags: []
+title: "MyBatis-Plus 查询执行流程整理"
+date: "2026-01-08 14:08:53"
+updated: "2026-11-09"
+type: post
+category: interview
+topic: backend
+tags: [java, mybatis, mybatis-plus, sql, orm]
+slug: "mybatis-plus-query-execution"
+summary: "按调用顺序梳理 MyBatis-Plus 查询中的条件解析、SQL 构建、MappedStatement、执行器和结果映射过程。"
+status: draft
+visibility: private
 ---
+
+# MyBatis-Plus 查询执行流程整理
 
 ## 1. mybatis-plus中SQL查询的过程？
 

@@ -1,8 +1,18 @@
 ---
-title: "001-LangChain.md"
-date: 2025-12-26 14:41:08
-tags: []
+title: "LangChain 与 RAG 面试知识"
+date: "2025-12-26 14:41:08"
+updated: "2026-11-09"
+type: post
+category: interview
+topic: ai
+tags: [langchain, rag, llm, agent]
+slug: "langchain-rag-interview"
+summary: "整理 LangChain 基础组件、RAG 检索、对话记忆与 Agent 工具调用，并归纳工程集成、安全控制和常见面试场景。"
+status: draft
+visibility: private
 ---
+
+# LangChain 与 RAG 面试知识
 
 ## 一、LangChain 基础认知（必问）
 

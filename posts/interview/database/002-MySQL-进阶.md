@@ -1,8 +1,18 @@
 ---
-title: "002-MySQL-进阶.md"
-date: 2025-12-26 14:41:29
-tags: []
+title: "MySQL 进阶面试与性能优化整理"
+date: "2025-12-26 14:41:29"
+updated: "2026-11-09"
+type: post
+category: interview
+topic: database
+tags: [mysql, sql-optimization, sharding, data-migration, locking]
+slug: "mysql-advanced-interview"
+summary: "围绕 MySQL 大表、分库分表、高并发写入、数据迁移和在线 DDL，整理性能优化与一致性相关的场景题。"
+status: draft
+visibility: private
 ---
+
+# MySQL 进阶面试与性能优化整理
 
 ## 一、MySQL 大数据量场景
 
@@ -70,7 +80,7 @@ tags: []
 | 失效场景分类                | 典型示例（索引字段：idx_col）                                                                 | 失效核心原因                                  | 修复方案                                                                 | 验证方法（EXPLAIN 关键指标）                          |
 |-----------------------------|-----------------------------------------------------------------------------------------------|-----------------------------------------------|--------------------------------------------------------------------------|-------------------------------------------------------|
 | **索引字段函数 / 表达式运算**   | `SELECT * FROM t WHERE ROUND(price)=100`<br>`SELECT * FROM t WHERE DATE(create_time)='2024-01-01'` | B + 树存储原始值，函数运算后值与索引不匹配    | 1. 运算移到等号右侧：`price BETWEEN 99.5 AND 100.5`<br>2. 时间范围替换函数：`create_time BETWEEN '2024-01-01 00:00:00' AND '2024-01-01 23:59:59'` | type 从 ALL → range；Extra 无 Using filesort          |
-| **隐式类型转换**                | `SELECT * FROM t WHERE id='100'`（id 是 INT）<br>`SELECT * FROM t WHERE phone=13800138000`（phone 是 VARCHAR） | 类型转换破坏索引有序性                        | 保证查询值与字段类型一致：<br>`id=100`<br>`phone='13800138000'`          | type 从 ALL → ref；key 显示目标索引名                 |
+| **隐式类型转换**                | `SELECT * FROM t WHERE id='100'`（id 是 INT）<br>`SELECT * FROM t WHERE demo_code=10001`（demo_code 是 VARCHAR，使用模拟编码） | 类型转换破坏索引有序性                        | 保证查询值与字段类型一致：<br>`id=100`<br>`demo_code='10001'`          | type 从 ALL → ref；key 显示目标索引名                 |
 | **联合索引违反最左匹配原则**    | 联合索引 idx_a_b(a,b)，查询 `SELECT * FROM t WHERE b=2`                                       | 联合索引按最左字段排序，跳过左侧字段无法定位  | 1. 补充最左前缀字段：`WHERE a=1 AND b=2`<br>2. 单独为 b 建索引（低优先级） | type 从 ALL → ref；key 显示 idx_a_b                   |
 | **非等值查询**（!=/NOT IN）     | `SELECT * FROM t WHERE status!=1`<br>`SELECT * FROM t WHERE id NOT IN (1,2,3)`                 | 否定式查询无法利用 B + 树有序性              | 1. 替换为范围查询：`status<1 OR status>1`<br>2. 数据量小时保留，业务层过滤 | type 从 ALL → range；rows 扫描行数减少                |
 | **左模糊匹配（LIKE '%xxx'）**   | `SELECT * FROM t WHERE name LIKE '%手机'`                                                     | 左模糊无法匹配索引前缀，无法定位起始位置      | 1. 改为右模糊：`LIKE '手机%'`（业务允许时）<br>2. 长文本用全文索引：`MATCH(name) AGAINST('手机')` | type 从 ALL → range（右模糊）/ fulltext（全文索引）   |

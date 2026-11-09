@@ -1,9 +1,18 @@
 ---
-title: "001-MySQL-基础.md"
-date: 2025-12-28 17:39:13
-tags: []
+title: "MySQL 基础面试知识整理"
+date: "2025-12-28 17:39:13"
+updated: "2026-11-09"
+type: post
+category: interview
+topic: database
+tags: [mysql, sql, innodb, index, transaction]
+slug: "mysql-basics-interview"
+summary: "整理 MySQL 存储引擎、事务隔离、索引、SQL、锁与查询优化器等基础面试知识。"
+status: draft
+visibility: private
 ---
 
+# MySQL 基础面试知识整理
 
 ## 一、MySQL 基础概念
 

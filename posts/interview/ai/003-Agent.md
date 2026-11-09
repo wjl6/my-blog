@@ -1,10 +1,20 @@
 ---
-title: "003-Agent.md"
-date: 2026-01-06 20:52:18
-tags: []
+title: "Agent 与 RAG 文档切分实践"
+date: "2026-01-06 20:52:18"
+updated: "2026-11-09"
+type: post
+category: interview
+topic: ai
+tags: [agent, rag, mcp, milvus]
+slug: "agent-rag-document-chunking"
+summary: "整理智能体平台比较、API 服务适配思路与 RAG 文档切分策略，并以小说内容为示例说明结构切分、语义处理和向量入库。"
+status: draft
+visibility: private
 ---
 
-## 1. dify、扣子、hiagent他们有什么共同点和不同点？
+# Agent 与 RAG 文档切分实践
+
+## 1. Dify、扣子、HiAgent 有什么共同点和不同点？
 | 维度         | Dify                                  | 扣子（Coze）| HiAgent                                |
 |--------------|---------------------------------------|---------------------------------------|----------------------------------------|
 | 面向人群     | 开发者                                | 普通用户 / 运营                       | 企业                                   |
@@ -16,7 +26,7 @@ tags: []
 | 内容 & 分发  | 弱                                    | 极强                                  | 弱                                     |
 | 典型场景     | AI SaaS / 内部系统                    | 聊天机器人 / 玩法                     | 数字员工 / 企业流程                    |
 
-## 2. 如何将本地API接口封装位MCP服务？
+## 2. 如何将本地 API 接口封装为 MCP 服务？
 
 核心是让你的 **API 接口适配 MCP 协议规范，对外提供标准化的 RPC 调用能力。**
 
@@ -165,7 +175,7 @@ public class MCPController {
 
 ---
 
-## 3. RAG文本如何切分？
+## 3. RAG 文本如何切分？
 
 切分直接影响三件事：
 - 召回准不准（向量检索）

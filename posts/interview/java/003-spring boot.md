@@ -1,8 +1,18 @@
 ---
-title: "003-spring boot.md"
-date: 2025-12-26 14:59:36
-tags: []
+title: "Spring 与 Spring Boot 面试知识"
+date: "2025-12-26 14:59:36"
+updated: "2026-11-09"
+type: post
+category: interview
+topic: backend
+tags: [java, spring, spring-boot, dependency-injection, transaction]
+slug: spring-boot-interview
+summary: "整理 Spring 的依赖注入、AOP、Bean 生命周期、事务与循环依赖，以及 Spring Boot 自动配置和启动流程。"
+status: draft
+visibility: private
 ---
+
+# Spring 与 Spring Boot 面试知识
 
 ### 1. 什么是 Spring？
 Spring 是一个 轻量级 IOC + AOP 容器，核心目标是：
@@ -68,7 +78,7 @@ Spring 是一个 轻量级 IOC + AOP 容器，核心目标是：
 
 ### 6. Bean 的生命周期是什么？
 - 本质是Spring 容器从创建 Bean 实例开始，到 Bean 实例最终被销毁的整个过程
-  ![](../../../assets/images/interview/java/002/01.png)
+  ![Spring Bean 生命周期流程图](../../../assets/images/interview/java/002/01.png)
 
 
 ```text

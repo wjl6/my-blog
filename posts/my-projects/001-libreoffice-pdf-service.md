@@ -1,13 +1,18 @@
-
 ---
 title: "基于 LibreOffice 的 Word 转 PDF HTTP 服务"
-date: 2025-12-25 18:14:32
-tags: [LibreOffice, Word, PDF]
+date: "2025-12-25 18:14:32"
+updated: "2026-11-09"
+type: "post"
+category: "my-projects"
+topic: "tools"
+tags: ["libreoffice", "pdf", "docker", "http"]
+slug: "libreoffice-pdf-service"
+summary: "介绍基于 LibreOffice 的文档转 PDF HTTP 服务，涵盖 Docker 部署、接口调用、环境变量配置和常见问题处理。"
+status: "draft"
+visibility: "private"
 ---
 
-
-
-# 基于 LibreOffice 的 Word 转 PDF HTTP 服务 —— libreoffice-pdf-service
+# 基于 LibreOffice 的 Word 转 PDF HTTP 服务
 
 在很多项目中，我们会遇到将 Word 文档转换成 PDF 的需求。尤其是在自动化办公、文件存档、内容分发等场景下，PDF 格式以其稳定的排版和广泛的兼容性成为首选。但很多库或在线服务在处理复杂文档时存在**格式偏差、样式错乱**等问题。
 
