@@ -34,7 +34,8 @@
 ├── journal/                      # 每日记录和每周复盘入口
 │   └── README.md
 ├── knowledge/                    # 专题笔记、问题方案和术语入口
-│   └── README.md
+│   ├── README.md
+│   └── notes/tools/              # 工程实践与知识表达
 ├── posts/                        # 现有文章及后续博客文章
 │   ├── README.md                 # 22 篇现有文章的分类索引
 │   ├── interview/                # 面试知识整理
@@ -69,6 +70,7 @@
 
 ## 已有内容
 
+- [2026 年工程实践总结](knowledge/notes/tools/history-conversation-insights.md)：需求验收、数据链路、AI 任务、数据库与邮件排查、分页和移动端交互中的工程方法。
 - [全部文章与技术主题索引](posts/README.md)：按分类和技术主题阅读，包含统一标签。
 - [面试知识](posts/interview/)：Java、前端、数据库、中间件、架构、AI。
 - [学习文章](posts/learning/)：技术学习与操作教程。
