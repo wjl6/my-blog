@@ -4,7 +4,7 @@
 
 ## 一 目标目录
 
-下图包含未来写作示例，并不表示已经创建了这些记录。当前入口包括根目录导航、AI 协作规范、建设与目录文档、内容检查记录、六类模板、日常记录与主题知识入口，以及 22 篇现有文章的[分类索引](../posts/README.md)。日期、主题、新资源和 `site/` 在有实际内容或开始建站时再创建。
+下图包含未来写作示例，并不表示已经创建了这些记录。当前入口包括根目录导航、AI 协作规范、建设与目录文档、内容检查记录、六类模板、日常记录与主题知识入口，以及现有文章的[分类索引](../posts/README.md)。日期、主题、新资源和 `site/` 在有实际内容或开始建站时再创建。
 
 ```text
 my-blog/
@@ -30,11 +30,11 @@ my-blog/
 ├── knowledge/
 │   ├── README.md
 │   ├── notes/
-│   │   └── backend/java-thread-pool.md
+│   │   └── backend/001-Java线程池.md
 │   ├── solutions/
-│   │   └── middleware/redis-hot-key-expiry.md
+│   │   └── middleware/001-Redis热点缓存失效排查.md
 │   └── glossary/
-│       └── ai/retrieval-augmented-generation.md
+│       └── ai/001-检索增强生成.md
 ├── posts/
 │   ├── README.md                 # 文章分类索引
 │   ├── interview/                 # 现有路径保留
@@ -78,11 +78,13 @@ my-blog/
 
 ## 三 文件与日期命名
 
-- 新文件使用小写英文和连字符，中文标题放在元数据和正文中，避免空格及无意义编号。存量文件名本次保持不变。
+- 新增文章、专题笔记、问题方案和术语卡片采用 `三位编号-中文主题.md`，例如 `001-Java线程池.md`。编号在同一目录内递增，保留技术名的准确大小写，避免空格；不为插入新内容重新编号或批量移动存量文件。
+- `README.md`、`AGENTS.md`、配置及工具约定的固定文件名保留各自约定，日报和周报继续按日期命名。
 - 日报使用 `journal/daily/YYYY/MM/YYYY-MM-DD.md`。
 - 周报使用 `journal/weekly/周所属年份/YYYY-Www.md`，周一到周日为一周，采用 ISO 周编号。跨年周使用周所属的 ISO 年，并在正文注明起止日期；例如 2027 年 1 月 1 日属于 `2026/2026-W53.md`。
-- 专题、方案和术语使用能概括主题的短名，例如 `java-thread-pool.md`、`redis-hot-key-expiry.md`、`retrieval-augmented-generation.md`。
-- 博客文章使用语义短名，例如 `posts/learning/redis-cache-breakdown.md`；时间归档交给元数据，不增加年份目录。
+- 专题、方案和术语使用准确的中文主题，例如 `001-Java线程池.md`、`001-Redis热点缓存失效排查.md`、`001-检索增强生成.md`。
+- 博客文章沿用所在分类的编号和中文主题格式，例如 `posts/learning/002-从MySQL锁等待超时排查到binlog容量失控.md`；时间归档交给元数据，不增加年份目录。
+- 文件名与公开地址分开维护，`slug` 继续使用唯一、稳定的英文短名，不随文件改名自动变化。图片资源目录和文件仍按资源短名组织，避免把内容编号当作资源身份。
 - 新记录日期按北京时间填写。`date` 为首次记录或文章日期，存量日期时间完整保留，不丢弃时分秒、不补猜测的时区；`updated` 为最近实质整理日期，不因修正空格反复更新，也不代表技术事实已经核验。
 
 ## 四 元数据约定
@@ -135,12 +137,12 @@ visibility: private
 关联内容使用相对路径和 `.md` 后缀，例如从 `knowledge/notes/backend/` 引用 AI 术语：
 
 ```markdown
-[检索增强生成](../../glossary/ai/retrieval-augmented-generation.md)
+[检索增强生成](../../glossary/ai/001-检索增强生成.md)
 ```
 
 只有目标文件真实存在时才添加正式链接；未完成的知识写入待整理项。当前选择这种写法便于仓库阅读，未来建站需在接入层处理目标路由，不假设所有框架都自动重写链接。
 
-新图片放在 `assets/images/<内容短名>/`，例如 `assets/images/redis-hot-key-expiry/request-flow.png`。从 `knowledge/solutions/middleware/redis-hot-key-expiry.md` 引用时使用：
+新图片放在 `assets/images/<内容短名>/`，例如 `assets/images/redis-hot-key-expiry/request-flow.png`。从 `knowledge/solutions/middleware/001-Redis热点缓存失效排查.md` 引用时使用：
 
 ```markdown
 ![请求流程](../../../assets/images/redis-hot-key-expiry/request-flow.png)

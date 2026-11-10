@@ -37,7 +37,7 @@
 │   ├── README.md
 │   └── notes/tools/              # 工程实践与知识表达
 ├── posts/                        # 现有文章及后续博客文章
-│   ├── README.md                 # 22 篇现有文章的分类索引
+│   ├── README.md                 # 文章分类与标签索引
 │   ├── interview/                # 面试知识整理
 │   ├── learning/                 # 教程与学习文章
 │   └── my-projects/              # 个人项目实践
@@ -70,6 +70,7 @@
 
 ## 已有内容
 
+- [MySQL 锁等待与 binlog 容量排查](posts/learning/002-%E4%BB%8EMySQL%E9%94%81%E7%AD%89%E5%BE%85%E8%B6%85%E6%97%B6%E6%8E%92%E6%9F%A5%E5%88%B0binlog%E5%AE%B9%E9%87%8F%E5%A4%B1%E6%8E%A7.md)：分层取证、安全处置、恢复验收与容量治理。
 - [2026 年工程实践总结](knowledge/notes/tools/history-conversation-insights.md)：需求验收、数据链路、AI 任务、数据库与邮件排查、分页和移动端交互中的工程方法。
 - [全部文章与技术主题索引](posts/README.md)：按分类和技术主题阅读，包含统一标签。
 - [面试知识](posts/interview/)：Java、前端、数据库、中间件、架构、AI。

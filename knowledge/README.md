@@ -4,14 +4,15 @@
 
 | 内容 | 首次写作时创建的路径 | 模板 |
 | --- | --- | --- |
-| 专题笔记 | `notes/<topic>/<slug>.md` | [专题模板](../templates/note.md) |
-| 问题与方案 | `solutions/<topic>/<slug>.md` | [方案模板](../templates/solution.md) |
-| 专业术语 | `glossary/<topic>/<slug>.md` | [术语模板](../templates/term.md) |
+| 专题笔记 | `notes/<topic>/<三位编号>-<中文主题>.md` | [专题模板](../templates/note.md) |
+| 问题与方案 | `solutions/<topic>/<三位编号>-<中文主题>.md` | [方案模板](../templates/solution.md) |
+| 专业术语 | `glossary/<topic>/<三位编号>-<中文主题>.md` | [术语模板](../templates/term.md) |
 
 主题优先使用 `backend`、`frontend`、`database`、`middleware`、`architecture`、`ai`、`devops`、`tools`，在有第一篇真实内容时创建。跨主题内容选一个主目录，其余用标签和链接表达。
 
 ## 已整理内容
 
+- [从 MySQL 锁等待超时排查到 binlog 容量失控](../posts/learning/002-%E4%BB%8EMySQL%E9%94%81%E7%AD%89%E5%BE%85%E8%B6%85%E6%97%B6%E6%8E%92%E6%9F%A5%E5%88%B0binlog%E5%AE%B9%E9%87%8F%E5%A4%B1%E6%8E%A7.md)：围绕锁等待、日志空间与提交状态建立证据链，并给出恢复与防再发方法。
 - [2026 年工程实践总结](notes/tools/history-conversation-insights.md)：围绕数据正确性、AI 流程、文档处理、部署排障与前端交互，展开十五个主题的设计方法、异常边界和验证场景。
 
 ## 专题笔记

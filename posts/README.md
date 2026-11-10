@@ -1,6 +1,6 @@
 # 文章分类与主题索引
 
-共 22 篇文章：面试知识 20 篇、学习教程 1 篇、项目实践 1 篇。按元数据的 `category` 和 `topic` 组织，文件及图片原路径保持不变。
+共 23 篇文章：面试知识 20 篇、学习教程 2 篇、项目实践 1 篇。按元数据的 `category` 和 `topic` 组织，文件及图片原路径保持不变。
 
 当前均为 `draft/private`，表示尚未完成技术事实与公开内容复核；日期显示原始记录日期，完整时间保留在各篇元数据中。`updated` 记录本次整理时间，不表示文中步骤已重新执行。
 
@@ -65,6 +65,7 @@ MyBatis-Plus 按技术内容归入后端主题，文件继续保留在原 `inter
 | 文章 | 原始日期 | 主题与标签 |
 | --- | --- | --- |
 | [Redmi AC2100 刷入 Breed 教程](learning/001-Redmi%E7%BA%A2%E7%B1%B3%E8%B7%AF%E7%94%B1%E5%99%A8AC2100%E5%88%B7Breed%E6%95%99%E7%A8%8B.md) | 2023-08-10 | tools / redmi-ac2100, router, breed, ssh |
+| [从 MySQL 锁等待超时排查到 binlog 容量失控](learning/002-%E4%BB%8EMySQL%E9%94%81%E7%AD%89%E5%BE%85%E8%B6%85%E6%97%B6%E6%8E%92%E6%9F%A5%E5%88%B0binlog%E5%AE%B9%E9%87%8F%E5%A4%B1%E6%8E%A7.md) | 2026-11-10 | database / mysql, innodb, locking, binlog, incident-response |
 
 ## 项目实践
 
