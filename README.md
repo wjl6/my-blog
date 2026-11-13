@@ -35,7 +35,7 @@
 │   └── README.md
 ├── knowledge/                    # 专题笔记、问题方案和术语入口
 │   ├── README.md
-│   └── notes/tools/              # 工程实践与知识表达
+│   └── notes/                    # 工程实践与后端专题
 ├── posts/                        # 现有文章及后续博客文章
 │   ├── README.md                 # 文章分类与标签索引
 │   ├── interview/                # 面试知识整理
@@ -70,6 +70,8 @@
 
 ## 已有内容
 
+- [AI 文档处理的阶段契约与链路一致性](posts/learning/005-AI%E6%96%87%E6%A1%A3%E5%A4%84%E7%90%86%E7%9A%84%E9%98%B6%E6%AE%B5%E5%A5%91%E7%BA%A6%E4%B8%8E%E9%93%BE%E8%B7%AF%E4%B8%80%E8%87%B4%E6%80%A7.md)：输入与覆盖契约、坐标变换、候选准入和有效缓存复用。
+- [结构化导出的来源映射与校验诊断](knowledge/notes/backend/001-%E7%BB%93%E6%9E%84%E5%8C%96%E5%AF%BC%E5%87%BA%E7%9A%84%E6%9D%A5%E6%BA%90%E6%98%A0%E5%B0%84%E4%B8%8E%E6%A0%A1%E9%AA%8C%E8%AF%8A%E6%96%AD.md)：来源与版本绑定、重复行定位、历史和过期诊断处理。
 - [MySQL 异地灾备方案设计与恢复演练](posts/learning/003-MySQL%E5%BC%82%E5%9C%B0%E7%81%BE%E5%A4%87%E6%96%B9%E6%A1%88%E8%AE%BE%E8%AE%A1%E4%B8%8E%E6%81%A2%E5%A4%8D%E6%BC%94%E7%BB%83.md)：从恢复目标、连续日志和容量预算设计备份、接管与回切。
 - [从指标采集到告警闭环的服务监控方案](posts/learning/004-%E4%BB%8E%E6%8C%87%E6%A0%87%E9%87%87%E9%9B%86%E5%88%B0%E5%91%8A%E8%AD%A6%E9%97%AD%E7%8E%AF%E7%9A%84%E6%9C%8D%E5%8A%A1%E7%9B%91%E6%8E%A7%E6%96%B9%E6%A1%88.md)：独立监控、缺数检测、容量预测、AI 探测与邮件验收。
 - [MySQL 锁等待与 binlog 容量排查](posts/learning/002-%E4%BB%8EMySQL%E9%94%81%E7%AD%89%E5%BE%85%E8%B6%85%E6%97%B6%E6%8E%92%E6%9F%A5%E5%88%B0binlog%E5%AE%B9%E9%87%8F%E5%A4%B1%E6%8E%A7.md)：分层取证、安全处置、恢复验收与容量治理。

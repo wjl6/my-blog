@@ -1,6 +1,6 @@
 # 文章分类与主题索引
 
-共 25 篇文章：面试知识 20 篇、学习教程 4 篇、项目实践 1 篇。按元数据的 `category` 和 `topic` 组织，文件及图片原路径保持不变。
+共 26 篇文章：面试知识 20 篇、学习教程 5 篇、项目实践 1 篇。按元数据的 `category` 和 `topic` 组织，文件及图片原路径保持不变。
 
 当前均为 `draft/private`，表示尚未完成技术事实与公开内容复核；日期显示原始记录日期，完整时间保留在各篇元数据中。`updated` 记录本次整理时间，不表示文中步骤已重新执行。
 
@@ -68,6 +68,7 @@ MyBatis-Plus 按技术内容归入后端主题，文件继续保留在原 `inter
 | [从 MySQL 锁等待超时排查到 binlog 容量失控](learning/002-%E4%BB%8EMySQL%E9%94%81%E7%AD%89%E5%BE%85%E8%B6%85%E6%97%B6%E6%8E%92%E6%9F%A5%E5%88%B0binlog%E5%AE%B9%E9%87%8F%E5%A4%B1%E6%8E%A7.md) | 2026-11-10 | database / mysql, innodb, locking, binlog, incident-response |
 | [MySQL 异地灾备方案设计与恢复演练](learning/003-MySQL%E5%BC%82%E5%9C%B0%E7%81%BE%E5%A4%87%E6%96%B9%E6%A1%88%E8%AE%BE%E8%AE%A1%E4%B8%8E%E6%81%A2%E5%A4%8D%E6%BC%94%E7%BB%83.md) | 2026-11-11 | database / mysql, backup, disaster-recovery, replication |
 | [从指标采集到告警闭环的服务监控方案](learning/004-%E4%BB%8E%E6%8C%87%E6%A0%87%E9%87%87%E9%9B%86%E5%88%B0%E5%91%8A%E8%AD%A6%E9%97%AD%E7%8E%AF%E7%9A%84%E6%9C%8D%E5%8A%A1%E7%9B%91%E6%8E%A7%E6%96%B9%E6%A1%88.md) | 2026-11-11 | devops / prometheus, grafana, monitoring, alerting, mysql |
+| [AI 文档处理的阶段契约与链路一致性](learning/005-AI%E6%96%87%E6%A1%A3%E5%A4%84%E7%90%86%E7%9A%84%E9%98%B6%E6%AE%B5%E5%A5%91%E7%BA%A6%E4%B8%8E%E9%93%BE%E8%B7%AF%E4%B8%80%E8%87%B4%E6%80%A7.md) | 2026-11-12 | ai / ai, pdf, ocr, data-pipeline, validation |
 
 ## 项目实践
 
