@@ -356,6 +356,8 @@ DISCOVERED → DOWNLOADING → SNAPSHOT_READY → PARSING → PERSISTING → COM
 
 模拟验收材料覆盖纯文本、HTML、仅附件、多层 MIME、内联图片、非标准文件名、下载中断、解析失败及重复投递。验证重试能够继续处理未完成邮件，且不会重复创建已经提交的结果。
 
+完整的拉取、游标、补偿与验收设计见[IMAP 邮件可靠拉取与故障恢复方案](../../../posts/learning/006-IMAP%E9%82%AE%E4%BB%B6%E5%8F%AF%E9%9D%A0%E6%8B%89%E5%8F%96%E4%B8%8E%E6%95%85%E9%9A%9C%E6%81%A2%E5%A4%8D%E6%96%B9%E6%A1%88.md)。
+
 ## 十三 同时处理分页的渲染状态与数据边界
 
 ### 分开视图故障与查询故障
