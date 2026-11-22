@@ -1,13 +1,13 @@
 ---
 title: "从 MySQL 锁等待超时排查到 binlog 容量失控"
 date: "2026-11-10"
-updated: "2026-11-10"
+updated: "2026-11-20"
 type: post
 category: learning
 topic: database
 tags: [mysql, innodb, locking, binlog, incident-response]
 slug: "mysql-lock-wait-timeout-binlog-disk-pressure"
-summary: "从锁等待超时、长事务与磁盘异常建立分层证据链，说明 binlog 容量问题的诊断、安全处置、恢复验收和长期治理方法。"
+summary: "从锁等待超时、长事务与磁盘异常建立分层证据链，给出 Linux 磁盘定位、MySQL binlog 查询、保留期设置及安全清理命令。"
 status: draft
 visibility: private
 ---
@@ -18,7 +18,7 @@ visibility: private
 
 一次排查沿着这条路径定位到大量 binlog 挤占磁盘空间；释放空间后，业务恢复可用。值得复用的方法，是逐层建立证据、按恢复依赖安排处置，并把“解除当前故障”与“长期控制增长”分别验收。
 
-以下以 MySQL 8.0 和 InnoDB 为技术范围。案例只保留通用故障现象；容量计算使用重新构造的模拟数据，SQL 为只读诊断模板，验证表描述验收要求。
+以下以 MySQL 8.0 和 InnoDB 为主，命令部分补充 MySQL 5.7、8.4 的差异。主机示例适用于 GNU/Linux。路径、文件名、日期和保留期均为演示值；查询与变更命令分别列出，验证表描述验收要求。
 
 ## 一 从报错位置逐步扩大排查范围
 
@@ -117,16 +117,58 @@ LIMIT 30;
 | 已删除但仍被打开的文件 | 文件名消失不一定意味着空间已经释放 |
 | 数据库错误日志 | 需要区分写入失败、权限问题、异常退出和恢复过程 |
 
-目录统计应限于相关路径，避免在 I/O 已经紧张时高频扫描整个文件系统。binlog 清单可以通过数据库获取，再与主机文件系统指标交叉核对。
+### 在 Linux 上按挂载点查空间
 
-### 核对生效配置与日志清单
+先从下一节的 SQL 取得 `datadir`、`log_bin_basename`、`tmpdir` 与 `log_error`，再在 MySQL 进程能看到这些路径的环境中查询。`log_bin_basename` 包含路径和文件前缀，取其所在目录作为查询路径。对数据、临时文件、错误日志和备份所在目录分别核对；容器内外路径不同时，先确认卷映射。若错误日志输出到标准错误，则核对实际接管输出的服务或容器日志。
+
+```bash
+target_dir=/srv/mysql-demo/binlog
+findmnt -T "$target_dir" -o TARGET,SOURCE,FSTYPE,OPTIONS
+df -hT -- "$target_dir"
+df -i -- "$target_dir"
+lsblk -f
+```
+
+`findmnt` 给出路径实际所在的挂载点、来源和挂载选项；`df -hT` 看 `Avail`、`Use%`，`df -i` 看 inode 余量。`lsblk -f` 用于追查本地块设备，不能代替对网络盘或容器卷的路径查询。[GNU Coreutils 手册源文档](https://raw.githubusercontent.com/coreutils/coreutils/master/doc/coreutils.texi)、[util-linux findmnt 手册](https://github.com/util-linux/util-linux/blob/master/misc-utils/findmnt.8.adoc)
+
+确认挂载点后，先看一级占用，再进入较大的目录。以下假设 `findmnt` 返回的挂载点为 `/srv/mysql-demo`：
+
+```bash
+mount_point=/srv/mysql-demo
+du -x -h --max-depth=1 -- "$mount_point" | sort -hr | head -n 20
+
+target_dir=/srv/mysql-demo/binlog
+find "$target_dir" -xdev -type f -size +1G -printf '%s\t%p\n' |
+    sort -nr | head -n 20
+```
+
+`du` 默认统计磁盘占用，`find -size` 按逻辑大小筛选，`%s` 显示逻辑字节数；稀疏文件的逻辑大小和实际占用可能差很多。`-x` 和 `-xdev` 限制跨文件系统扫描，不能据此断定同一文件系统的绑定挂载已被排除。`--max-depth=1` 和 `head` 限制展示范围，仍需遍历下层文件；I/O 紧张时优先扫描已知目录，留意权限错误。[GNU find 手册](https://man7.org/linux/man-pages/man1/find.1.html)
+
+如果 `df` 显示占用很高，而 `du` 找不到相应文件，先确认挂载位置、扫描权限和存储快照，再由有相应权限的操作人员查看已删除但仍打开的文件：
+
+```bash
+lsof -nP +L1
+```
+
+按进程、设备和路径核对输出。打开的文件即使已删除目录项，通常也要等最后一个引用关闭才会释放空间。确认文件用途后按服务维护流程关闭或轮转，避免直接截断文件描述符或终止数据库进程。[lsof 手册](https://raw.githubusercontent.com/lsof-org/lsof/master/Lsof.8)、[Linux unlink 手册](https://man7.org/linux/man-pages/man2/unlink.2.html#DESCRIPTION)
+
+### 查询 binlog 路径、容量和当前位置
 
 ```sql
 -- 查看实际配置，不修改任何参数。
+SELECT VERSION() AS mysql_version;
+
 SHOW GLOBAL VARIABLES
 WHERE Variable_name IN (
+    'datadir',
+    'tmpdir',
+    'log_error',
+    'log_bin',
+    'log_bin_basename',
+    'log_bin_index',
     'innodb_lock_wait_timeout',
     'innodb_rollback_on_timeout',
+    'expire_logs_days',
     'binlog_expire_logs_seconds',
     'binlog_expire_logs_auto_purge',
     'max_binlog_size',
@@ -137,9 +179,38 @@ WHERE Variable_name IN (
 SHOW BINARY LOGS;
 ```
 
-配置项需按版本解释，例如自动清理开关并非所有 MySQL 8.0 小版本都存在。该查询返回全局值，故障请求所在连接的会话级锁等待参数仍需单独核对；排查连接自己的会话值，也不能代替故障连接的实际值。
+先看 `log_bin` 是否开启。`SHOW BINARY LOGS` 中的 `Log_name` 和 `File_size` 分别表示日志名和字节数；总和可用于估算 binlog 规模，并与主机文件占用对照。下例使用已配置的演示登录路径 `demo`，查询失败时不会把空结果报为 0：
 
-还应检查运行配置与持久配置是否一致，不能只查看配置文件文本就认定当前进程已经使用它。
+```bash
+binlogs=$(mysql --login-path=demo --batch --skip-column-names -e 'SHOW BINARY LOGS') &&
+    printf '%s\n' "$binlogs" |
+    awk 'NF >= 2 { bytes += $2; count++ }
+         END { if (count) printf "%d files, %.2f GiB\n", count, bytes / 1073741824 }'
+```
+
+| 用途 | MySQL 5.7 | MySQL 8.0 | MySQL 8.4 |
+| --- | --- | --- | --- |
+| 列出实例的 binlog | `SHOW BINARY LOGS;` | `SHOW BINARY LOGS;` | `SHOW BINARY LOGS;` |
+| 查源库当前写入文件与位置 | `SHOW MASTER STATUS;` | `SHOW MASTER STATUS;` | `SHOW BINARY LOG STATUS;` |
+| 查副本复制状态 | `SHOW SLAVE STATUS\G` | 从 8.0.22 起用 `SHOW REPLICA STATUS\G`，更早版本用 `SHOW SLAVE STATUS\G` | `SHOW REPLICA STATUS\G` |
+
+表中的 `\G` 是 `mysql` 终端客户端的纵向输出结尾，其他 SQL 客户端用分号即可。清单、当前位置和副本进度各自回答不同问题；当前正在写的文件通常不是应该保留的最早文件。[日志清单](https://dev.mysql.com/doc/refman/8.4/en/show-binary-logs.html)、[副本状态](https://dev.mysql.com/doc/refman/8.0/en/show-replica-status.html)、[MySQL 8.4 命令变更](https://dev.mysql.com/doc/relnotes/mysql/8.4/en/news-8-4-0.html)
+
+需要定位具体事件时，先限定文件和返回行数；本地只检查授权保存的未加密副本，按事件位置缩小范围：
+
+```sql
+SHOW BINLOG EVENTS IN 'demo-bin.000120' FROM 4 LIMIT 20;
+```
+
+```bash
+mysqlbinlog --base64-output=DECODE-ROWS -vv \
+    --start-position=4 --stop-position=4096 \
+    /srv/mysql-demo/archive/demo-bin.000120
+```
+
+`SHOW BINLOG EVENTS` 不展示所有事件；`mysqlbinlog` 的偏移量用实际事件边界替换示例值。加密日志不能用该方式直接解码本地文件，需要通过 MySQL 服务端读取。解码结果可能包含真实业务数据，应限制输出范围并留在受控环境；上面的解码模式仅用于检查。[SHOW BINLOG EVENTS](https://dev.mysql.com/doc/refman/8.0/en/show-binlog-events.html)、[mysqlbinlog 手册](https://dev.mysql.com/doc/refman/8.0/en/mysqlbinlog.html)
+
+全局变量查询只返回该版本存在的项目。对有会话作用域的锁等待参数，仍须核对故障连接的实际值；排查连接自己的会话值不能代替它。
 
 ## 五 容量异常为什么可能表现为锁等待
 
@@ -179,13 +250,31 @@ binlog 可能被复制、变更数据捕获和备份恢复链使用。没有看�
 3. 已归档日志是否完整、可读取并通过恢复验证。
 4. 本地实际可以释放的范围，以及释放后能否支撑当前写入与恢复过程。
 
-使用 MySQL 支持的 `PURGE BINARY LOGS` 维护日志清单；`TO` 边界删除目标文件之前的日志，目标文件本身保留。不要用文件系统通配符删除 binlog，或把重置日志历史当作常规清理手段。[MySQL PURGE 语义](https://dev.mysql.com/doc/refman/8.0/en/purge-binary-logs.html)
+在每个副本的每条复制通道查源库读取进度：新版看 `Source_Log_File` 和 `Read_Source_Log_Pos`，旧版对应 `Master_Log_File` 和 `Read_Master_Log_Pos`。`Relay_Log_File` 指的是副本本地文件，延迟秒数也不能直接换算出源库可删除的文件。遇到位点未知、离线或断连的副本，要另核其恢复所需位置。在线副本正从源库读取的文件可受到 MySQL 保护，但这不覆盖离线副本、CDC 与备份恢复。
 
 时间点恢复依赖备份之后的必要二进制日志。清理策略必须同时满足恢复目标，而不只满足“现在腾出空间”。[MySQL 时间点恢复](https://dev.mysql.com/doc/refman/8.0/en/point-in-time-recovery-binlog.html)
 
+### 用 PURGE 按文件边界清理
+
+在目标源库核对 `SHOW BINARY LOGS`，从副本、CDC 检查点和时间点恢复所需日志中取最早必须保留的文件。在准备清理的文件区间，如果依赖外部归档，先检查日志是否连续、能否读回，并核对恢复位点。只在边界已确认后由有权限的人员执行；MySQL 8.0 和 8.4 使用 `BINLOG_ADMIN`，5.7 使用 `SUPER`。[MySQL 5.7 权限说明](https://docs.oracle.com/cd/E17952_01/mysql-5.7-en/privileges-provided.html)
+
+```sql
+-- 模拟：清单中 demo-bin.000123 是必须保留的第一个文件。
+-- 它之前的整份日志文件才会被删除，它自身不会被删除。
+PURGE BINARY LOGS TO 'demo-bin.000123';
+SHOW WARNINGS;
+SHOW BINARY LOGS;
+```
+
+另有按时间清理的语法，例如 `PURGE BINARY LOGS BEFORE '2026-01-08 00:00:00';`。它按文件修改时间选择旧文件，不会截断日志或按事务时间逐条删除。使用前先核对 `SELECT @@session.time_zone, NOW();` 及实际文件范围；文件与依赖已经明确时，优先用 `TO`。[MySQL PURGE 语义](https://dev.mysql.com/doc/refman/8.0/en/purge-binary-logs.html)、[MySQL 8.4 文件时间比较实现](https://github.com/mysql/mysql-server/blob/mysql-8.4.0/sql/binlog.cc#L5950-L5967)
+
+MySQL 会同步维护索引文件，禁止用文件系统命令直接删除 binlog 或修改 `.index` 来绕过清理。`RESET MASTER` 和 `RESET BINARY LOGS AND GTIDS` 也不用于常规清理，它们会重置日志历史，并可能影响 GTID 状态。[MySQL 8.4 重置语义](https://dev.mysql.com/doc/refman/8.4/en/reset-binary-logs-and-gtids.html)
+
+`FLUSH BINARY LOGS;` 用于主动轮转，会创建新的日志文件，也可能触发到期清理。它属于维护操作；满盘时先确认能否安全回收空间或扩容，不要把轮转当作必然腾出空间的办法。[MySQL FLUSH 语句](https://dev.mysql.com/doc/refman/8.0/en/flush.html)
+
 ### 用实际结果确认处置生效
 
-清理后核对日志清单与文件系统可用空间，再观察错误日志、提交延迟和等待关系。若不能安全删除现有日志，恢复方案应转向受控扩容、已验证的归档路径或其他明确可回收对象，不能越过恢复依赖强行缩短保留窗口。
+清理后先看警告和日志清单，确认应保留的首个文件仍在；对同一目录重跑 `df -hT`，再复查复制及 CDC 是否继续推进，观察错误日志、提交延迟和等待关系。若命令失败或没有达到预期回收量，先查报错和依赖；无法安全删除时，转向受控扩容或其他明确可回收对象。
 
 ## 七 将恢复拆成四层验收
 
@@ -209,6 +298,33 @@ binlog 可能被复制、变更数据捕获和备份恢复链使用。没有看�
 `binlog_expire_logs_seconds` 约束日志保留时间，不约束总字节数；`max_binlog_size` 是单文件轮转阈值，大事务还可能让单个文件超过该值。即使过期清理正常工作，保留窗口内的日志也可能超过磁盘预算。[MySQL binlog 配置](https://dev.mysql.com/doc/refman/8.0/en/replication-options-binary-log.html)
 
 到期日志清理会在启动、日志刷新等时机检查，并受对应版本的自动清理开关控制。配置了保留时间，不等于文件一过期就由一个独立定时器立即删除。[MySQL 日志维护](https://dev.mysql.com/doc/refman/8.0/en/log-file-maintenance.html)
+
+### 按版本修改并复核保留期
+
+| 版本 | 保留变量 | 设置时的注意事项 |
+| --- | --- | --- |
+| MySQL 5.7 | `expire_logs_days`，单位为天 | 默认 `0`，不自动清理；用 `SET GLOBAL` 修改当前值，另写入实际生效的配置文件才能跨重启保留。 |
+| MySQL 8.0 | `binlog_expire_logs_seconds`，单位为秒 | 仍有弃用的 `expire_logs_days`。迁移时先核对旧变量，若非零，要先把旧值清零并清理旧持久设置，再启用秒级配置。从 8.0.29 起还需检查 `binlog_expire_logs_auto_purge`。 |
+| MySQL 8.4 | `binlog_expire_logs_seconds`，单位为秒 | `expire_logs_days` 已在 8.2 移除；自动清理开关为 `OFF` 或秒数为 `0` 时，不按保留期自动清理。 |
+
+参见 [MySQL 5.7 binlog 参数](https://dev.mysql.com/doc/mysql-replication-excerpt/5.7/en/replication-options-binary-log.html#sysvar_expire_logs_days)、[MySQL 8.0 binlog 参数](https://dev.mysql.com/doc/refman/8.0/en/replication-options-binary-log.html#sysvar_binlog_expire_logs_seconds)、[MySQL 8.2 参数移除说明](https://dev.mysql.com/doc/relnotes/mysql/8.4/en/news-8-2-0.html)、[MySQL 8.4 binlog 参数](https://dev.mysql.com/doc/refman/8.4/en/replication-options-binary-log.html#sysvar_binlog_expire_logs_seconds)。
+
+以下以 **7 天（604800 秒）** 演示语法。按复制、CDC、备份和容量要求计算实际值。缩短保留期后，下一次自动清理可能删除现有文件，应先按第六节确认依赖。
+
+```sql
+-- MySQL 8.0 / 8.4：仅修改运行值，或改用 SET PERSIST 同时保存；二选一。
+SET GLOBAL binlog_expire_logs_seconds = 604800;
+-- SET PERSIST binlog_expire_logs_seconds = 604800;
+```
+
+```sql
+-- MySQL 5.7：仅修改运行值。
+SET GLOBAL expire_logs_days = 7;
+```
+
+若以配置文件统一管理，在实际生效的 `[mysqld]` 段按版本选一项：5.7 写 `expire_logs_days=7`，8.0 或 8.4 写 `binlog_expire_logs_seconds=604800`。MySQL 8.0.29 及以上可用 `SET GLOBAL binlog_expire_logs_auto_purge = ON;` 恢复自动清理，先确认关闭开关的原因和恢复窗口。`log_bin` 的启用及路径属于启动配置，不能用 `SET GLOBAL` 在线切换。托管数据库通过服务商支持的参数管理方式配置。
+
+使用 `SET PERSIST` 时，MySQL 会写入数据目录的 `mysqld-auto.cnf`。启用持久配置加载时，这里的同名值会覆盖普通配置；不要手改该文件。需要回到配置文件统一管理时，在核对新配置后用 `RESET PERSIST IF EXISTS binlog_expire_logs_seconds;` 删除对应的持久覆盖，它不会改动当前运行值。变更后重查第四节的全局变量，安排重启后的复核，并在下一次正常轮转后对比日志清单、归档连续性和实际磁盘余量。[MySQL 持久化参数](https://dev.mysql.com/doc/refman/8.0/en/persisted-system-variables.html)、[RESET PERSIST](https://dev.mysql.com/doc/refman/8.0/en/reset-persist.html)
 
 ### 同时计算需要保留多久与实际放得下多少
 
